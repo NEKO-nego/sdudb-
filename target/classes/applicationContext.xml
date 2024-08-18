@@ -33,6 +33,20 @@
     <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
   </bean>
 
+  <!--new bean for alipay-->
+
+  <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+    <property name="locations">
+      <list>
+        <value>classpath:application.yml</value>
+      </list>
+    </property>
+  </bean>
+
+
+  <bean id="aliPayConfig" class="ds.common.AliPayConfig">
+    <!-- 配置属性 -->
+  </bean>
   <!-- Import other configurations -->
   <import resource="spring-mapper.xml"/>
   <import resource="spring-service.xml"/>

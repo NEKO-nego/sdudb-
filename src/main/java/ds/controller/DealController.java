@@ -3,6 +3,11 @@ package ds.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
+import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.request.AlipayTradePagePayRequest;
+import ds.common.AliPayConfig;
 import ds.pojo.Deal;
 import ds.pojo.Plane;
 import ds.pojo.Ticket;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,13 +33,54 @@ import java.util.List;
 @Controller
 @CrossOrigin
 public class DealController {
+
+    private static final String GATEWAY_URL = "https://openapi-sandbox.dl.alipaydev.com/gateway.do";
+    private static final String FORMAT = "JSON";
+    private static final String CHARSET = "UTF-8";
+    // 签名方式
+    private static final String SIGN_TYPE = "RSA2";
+
     @Autowired
     @Qualifier("dealServiceImpl")
     private DealService dealService;
 
+    @Autowired
+    private AliPayConfig aliPayConfig;
+
+    //封装一个alipay的方法
+    private void alipay(Deal deal, HttpServletResponse httpResponse)throws Exception{
+        //进行阿里沙盒支付
+        // 1. 创建AlipayClient，初始化支付宝客户端，使用alipay-sdk-java
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, aliPayConfig.getAppId(),
+                aliPayConfig.getAppPrivateKey(), FORMAT, CHARSET, aliPayConfig.getAlipayPublicKey(), SIGN_TYPE);
+
+        // 2. 创建Request并设置Request参数
+        AlipayTradePagePayRequest request = new AlipayTradePagePayRequest(); // 发起请求的Request类
+        request.setNotifyUrl(aliPayConfig.getNotifyUrl());
+        cn.hutool.json.JSONObject bizContent = new cn.hutool.json.JSONObject();
+        bizContent.set("out_trade_no", deal.getDeal_id()); // 我们自己生成的订单编号
+        bizContent.set("total_amount", deal.getPrice()); // 订单的总金额
+        bizContent.set("subject", "ticket_id" + deal.getTicket_id()); // 支付的名称
+        bizContent.set("product_code", "FAST_INSTANT_TRADE_PAY"); // 固定配置
+        request.setBizContent(bizContent.toString());
+        request.setReturnUrl("http://localhost:8081/#/search");//http://localhost:8081/#/search
+
+        String form = "";
+        try {
+            form = alipayClient.pageExecute(request).getBody(); // 调用SDK生成表单
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+        }
+
+        httpResponse.setContentType("text/html;charset=" + CHARSET);
+        httpResponse.getWriter().write(form); // 直接将完整的表单html输出到页面
+        httpResponse.getWriter().flush();
+        httpResponse.getWriter().close();
+    }
+
     //付款一笔直达订单
     @RequestMapping(value = "/pay",method = RequestMethod.POST)
-    public String pay(HttpServletRequest req) throws IOException {
+    public String pay(HttpServletRequest req, HttpServletResponse httpResponse) throws Exception {
 
         //获得对象
         String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
@@ -55,6 +102,8 @@ public class DealController {
         dealService.addDealTicket(deal);//向dealticket表插入信息
         //转发对票的剩余数减一
         req.setAttribute("ticket_id",deal.getTicket_id());
+
+        alipay(deal,httpResponse);
 
         return "forward:/numberRestMinus1";
     }

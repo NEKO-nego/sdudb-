@@ -5,14 +5,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "alipay")
-public class AliPayConfig {
-    public AliPayConfig() {
-    }
 
+public class AliPayConfig {
+
+
+    @Value("${alipay.appId}")
     private String appId;
+
+    @Value("${alipay.appPrivateKey}")
     private String appPrivateKey;
+
+    @Value("${alipay.alipayPublicKey}")
     private String alipayPublicKey;
+
+    @Value("${alipay.notifyUrl}")
     private String notifyUrl;
 
     public String getAppId() {
