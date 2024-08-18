@@ -32,7 +32,9 @@
   <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
     <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
   </bean>
-
+  <bean id="aliPayConfig" class="ds.common.AliPayConfig">
+    <!-- 配置属性 -->
+  </bean>
   <!-- Import other configurations -->
   <import resource="spring-mapper.xml"/>
   <import resource="spring-service.xml"/>
