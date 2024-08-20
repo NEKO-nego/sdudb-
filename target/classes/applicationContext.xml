@@ -33,7 +33,7 @@
     <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
   </bean>
 
-  <!--new bean for alipay-->
+  <!--new bean for alipay
 
   <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
     <property name="locations">
@@ -42,7 +42,7 @@
       </list>
     </property>
   </bean>
-
+-->
 
   <bean id="aliPayConfig" class="ds.common.AliPayConfig">
     <!-- 配置属性 -->
