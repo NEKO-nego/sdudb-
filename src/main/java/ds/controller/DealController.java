@@ -13,6 +13,7 @@ import ds.pojo.Plane;
 import ds.pojo.Ticket;
 import ds.service.DealService;
 
+import ds.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -42,6 +43,10 @@ public class DealController {
     private DealService dealService;
 
     @Autowired
+    @Qualifier("ticketServiceImpl")
+    TicketService ticketService;
+
+    @Autowired
     private AliPayConfig aliPayConfig;
 
     //封装一个alipay的方法
@@ -65,7 +70,7 @@ public class DealController {
     //付款一笔直达订单
     @ResponseBody
     @RequestMapping(value = "/pay",method = RequestMethod.POST)
-    public void pay(HttpServletRequest req, HttpServletResponse httpResponse) throws Exception {
+    public String pay(HttpServletRequest req, HttpServletResponse httpResponse) throws Exception {
 
         //获得对象
         String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
@@ -92,17 +97,26 @@ public class DealController {
         String form = "";
         try {
             form = alipay(deal);
+
+            // 直接返回生成的表单 HTML 字符串
             httpResponse.setContentType("text/html;charset=" + CHARSET);
             PrintWriter writer = httpResponse.getWriter();
             writer.print(form);
             writer.flush();
-            httpResponse.getWriter().close();
+            writer.close();
         } catch (AlipayApiException e) {
             e.printStackTrace();
             httpResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Payment processing error");
         }
-        System.out.println("Generated form: " + form);
+        System.out.println("Generated 这个真的是最新版form: " + form);
 
+        //余票减一
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        int ticket_id = deal.getTicket_id();
+        map.put("ticket_id",ticket_id);
+        ticketService.updateTicketMinus1(map);
+
+        return form;
     }
 
     //付款一笔中转订单
