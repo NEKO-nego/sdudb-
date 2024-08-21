@@ -59,4 +59,66 @@ public class LoginController {
             return JSON.toJSONString(user.get(0));
         }
     }
+
+    //增加用户
+
+    @RequestMapping(value = "/addUser", method = RequestMethod.POST)
+    public int addUser(HttpServletRequest req) throws IOException {
+        // 获取对象
+        String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
+        String str = s.substring(8, s.length() - 1);
+        User newUser = JSON.parseObject(str, User.class, Feature.InitStringFieldAsEmpty);
+
+        // 解码
+        try {
+            newUser.setName(java.net.URLDecoder.decode(newUser.getName(), "UTF-8"));
+            newUser.setPwd(java.net.URLDecoder.decode(newUser.getPwd(), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        int result = userService.addUser(newUser);
+        System.out.println(result);
+        return result;
+    }
+
+
+    @RequestMapping(value = "/deleteUser", method = RequestMethod.POST)
+    public String deleteUser(HttpServletRequest req) throws IOException {
+        // 获取用户ID
+        String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
+        int userId = Integer.parseInt(s.substring(8, s.length() - 1));
+
+        int result = userService.deleteUser(userId);
+
+        return result > 0 ? "true" : "false";
+    }
+
+
+    @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
+    public String changePassword(HttpServletRequest req) throws IOException {
+        // 获取对象
+        String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
+        String str = s.substring(8, s.length() - 1);
+        User user = JSON.parseObject(str, User.class, Feature.InitStringFieldAsEmpty);
+
+        // 解码
+        try {
+            user.setName(java.net.URLDecoder.decode(user.getName(), "UTF-8"));
+            user.setPwd(java.net.URLDecoder.decode(user.getPwd(), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        // 更新密码
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("name", user.getName());
+        map.put("pwd", user.getPwd());
+
+        int result = userService.updateUser(map);
+
+        return result > 0 ? "true" : "false";
+    }
+
+
 }
