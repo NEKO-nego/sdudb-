@@ -83,6 +83,14 @@ public class CityController {
         map.put("city_name",city);
         List<City> c=cityService.getCityList(map);
 
-        return JSON.toJSONString(c.get(0).getTime_adapter());
+        // 获取 time_adapter 的值
+        String timeAdapter = c.get(0).getTime_adapter();
+
+        // 检查是否为正数并添加 "+" 号
+        if (timeAdapter != null && !timeAdapter.isEmpty() && timeAdapter.matches("^[0-9].*")) {
+            timeAdapter = "+" + timeAdapter;
+        }
+
+        return JSON.toJSONString(timeAdapter);
         }
     }
