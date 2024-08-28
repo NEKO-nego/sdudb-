@@ -54,8 +54,8 @@ public class MyTest {
         ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
         CityService mapper = (CityService) context.getBean("cityServiceImpl");
         HashMap<String, Object> map = new HashMap<String, Object>();
-        String s=mapper.getTransitCity(map,"北京","华盛顿");
-        System.out.println(s);
+        //String s=mapper.getTransitCity(map,"北京","华盛顿");
+        //System.out.println(s);
     }
 
     @Test

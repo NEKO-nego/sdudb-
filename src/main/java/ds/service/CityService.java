@@ -9,6 +9,6 @@ import java.util.Map;
 @Service
 public interface CityService {
     List<City> getCityList(Map map);
-    public String getTransitCity(Map map,String start_city,String end_city);
+    public List<City> getTransitCity(Map map,String start_city,String end_city);
 
 }

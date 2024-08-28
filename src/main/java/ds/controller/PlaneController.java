@@ -89,62 +89,65 @@ public class PlaneController {
     @RequestMapping(value = "/searchTransit",method = RequestMethod.POST)
     public String transit(HttpServletRequest req) throws IOException, ParseException {
 
-        System.out.println(req.getAttribute("transit_city"));
-
-        //第一程
-        HashMap<String, Object> map1 = new HashMap<String, Object>();
-        map1.put("start_city",req.getAttribute("start_city"));
-        map1.put("end_city",req.getAttribute("transit_city"));
-        map1.put("start_day",req.getAttribute("start_day"));
-        List<Plane> planes1 = planeService.getPlaneListWithLowestPrice(map1);
-
-
-        //第二程
-        HashMap<String, Object> map2 = new HashMap<String, Object>();
-        map2.put("start_city",req.getAttribute("transit_city"));
-        map2.put("end_city",req.getAttribute("end_city"));
-        map2.put("start_day",req.getAttribute("start_day"));
-        List<Plane> planes2 = planeService.getPlaneListWithLowestPrice(map2);
-
-        //获得第二天
-        String day=(String) req.getAttribute("start_day");
-        SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd");
-        Date date =sdf.parse(day);
-        date.setTime(date.getTime()+86400000);
-        String next_day=sdf.format(date);
-
-        //跨日第二程
-        HashMap<String, Object> map3 = new HashMap<String, Object>();
-        map3.put("start_city",req.getAttribute("transit_city"));
-        map3.put("end_city",req.getAttribute("end_city"));
-        map3.put("start_day",next_day);
-        List<Plane> planes3 = planeService.getPlaneListWithLowestPrice(map3);
-        planes2.addAll(planes3);
-
-
-        //找到合适的中转航班，中转时间大于1h,小于12h,且在同一个机场
+        List<City> transitCities = (List<City>) req.getAttribute("transit_city");
+        System.out.println("可供中转的城市有：" + req.getAttribute("transitCities"));
         List<Planes2> mm=new ArrayList<>();
-        SimpleDateFormat sdf1= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        for (int i = 0; i < planes1.size(); i++) {
-            for (int j = 0; j < planes2.size(); j++) {
-                if (!planes1.get(i).getArrival_airfield().equals(planes2.get(j).getDeparture_airfield())){
-                    continue;
-                }
-                System.out.println(1);
-                String day1=planes1.get(i).getStart_day()+" "+planes1.get(i).getEnd_time();
-                String day2=planes2.get(j).getStart_day()+" "+planes2.get(j).getStart_time();
-                System.out.println(day1);
-                System.out.println(day2);
-                long ms=sdf1.parse(day2).getTime()-sdf1.parse(day1).getTime();
-                System.out.println(ms);
-                if(ms>=3600000&&ms<=43200000){
-                    Planes2 pp=new Planes2(planes1.get(i),planes2.get(j));
-                    mm.add(pp);
-                    break;
+
+        for (City transitCity : transitCities)
+        {//第一程
+            HashMap<String, Object> map1 = new HashMap<String, Object>();
+            map1.put("start_city", req.getAttribute("start_city"));
+            map1.put("end_city", transitCity.getCity_name());
+            map1.put("start_day", req.getAttribute("start_day"));
+            List<Plane> planes1 = planeService.getPlaneListWithLowestPrice(map1);
+
+
+            //第二程
+            HashMap<String, Object> map2 = new HashMap<String, Object>();
+            map2.put("start_city", transitCity.getCity_name());
+            map2.put("end_city", req.getAttribute("end_city"));
+            map2.put("start_day", req.getAttribute("start_day"));
+            List<Plane> planes2 = planeService.getPlaneListWithLowestPrice(map2);
+
+            //获得第二天
+            String day = (String) req.getAttribute("start_day");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse(day);
+            date.setTime(date.getTime() + 86400000);
+            String next_day = sdf.format(date);
+
+            //跨日第二程
+            HashMap<String, Object> map3 = new HashMap<String, Object>();
+            map3.put("start_city", transitCity.getCity_name());
+            map3.put("end_city", req.getAttribute("end_city"));
+            map3.put("start_day", next_day);
+            List<Plane> planes3 = planeService.getPlaneListWithLowestPrice(map3);
+            planes2.addAll(planes3);
+
+
+            //找到合适的中转航班，中转时间大于1h,小于12h,且在同一个机场
+
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            for (int i = 0; i < planes1.size(); i++) {
+                for (int j = 0; j < planes2.size(); j++) {
+                    if (!planes1.get(i).getArrival_airfield().equals(planes2.get(j).getDeparture_airfield())) {
+                        continue;
+                    }
+                    System.out.println(1);
+                    String day1 = planes1.get(i).getStart_day() + " " + planes1.get(i).getEnd_time();
+                    String day2 = planes2.get(j).getStart_day() + " " + planes2.get(j).getStart_time();
+                    System.out.println(day1);
+                    System.out.println(day2);
+                    long ms = sdf1.parse(day2).getTime() - sdf1.parse(day1).getTime();
+                    System.out.println(ms);
+                    if (ms >= 3600000 && ms <= 43200000) {
+                        Planes2 pp = new Planes2(planes1.get(i), planes2.get(j));
+                        mm.add(pp);
+                        break;
+                    }
                 }
             }
         }
-
 
         return JSON.toJSONString(mm, SerializerFeature.DisableCircularReferenceDetect);
     }

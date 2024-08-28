@@ -52,7 +52,7 @@ public class CityController {
 
         //获得中转城市名称
         Map<String,Object> map=new HashMap<>();
-        String transitCity=cityService.getTransitCity(map,f_plane.getStart_city(),f_plane.getEnd_city());
+        List<City> transitCity=cityService.getTransitCity(map,f_plane.getStart_city(),f_plane.getEnd_city());
         req.setAttribute("transit_city",transitCity);
         req.setAttribute("start_city",f_plane.getStart_city());
         req.setAttribute("end_city",f_plane.getEnd_city());

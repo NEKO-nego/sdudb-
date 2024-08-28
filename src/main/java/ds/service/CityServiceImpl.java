@@ -1,16 +1,21 @@
 package ds.service;
 
 import ds.mapper.CityMapper;
+import ds.mapper.PlaneMapper;
 import ds.pojo.City;
+import ds.pojo.Plane;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class CityServiceImpl implements CityService{
-
+    @Autowired
+    PlaneMapper planemapper;
     CityMapper cityMapper;
     public void setCityMapper(CityMapper cityMapper) {
         this.cityMapper = cityMapper;
@@ -22,19 +27,10 @@ public class CityServiceImpl implements CityService{
     }
 
     @Override
-    public String getTransitCity(Map map,String start_city,String end_city){
+    public List<City> getTransitCity(Map map,String start_city,String end_city){
         List<City> cities= cityMapper.getCityList(map);
         int s=cities.size();
-        int[][] distance=new int[s][s];
-        for (int i = 0; i < s; i++) {
-            for (int j = 0; j < s; j++) {
-                int xi=cities.get(i).getX();
-                int yi=cities.get(i).getY();
-                int xj=cities.get(j).getX();
-                int yj=cities.get(j).getY();
-                distance[i][j]=Math.abs(xj-xi)*Math.abs(xj-xi)+Math.abs(yj-yi)*Math.abs(yj-yi);
-            }
-        }
+
         Map<String,Object> startM=new HashMap();
         startM.put("city_name",start_city);
         List<City> cc=cityMapper.getCityList(startM);
@@ -44,33 +40,44 @@ public class CityServiceImpl implements CityService{
         List<City> ccc=cityMapper.getCityList(endM);
         int end=ccc.get(0).getCity_id();
 
-        if (cc.size()>0&&ccc.size()>0){
-            int start=cc.get(0).getCity_id();
+        if (cc.size()>0&&ccc.size()>0) {
+            int start = cc.get(0).getCity_id();
             for (int i = 0; i < s; i++) {
-                if(cities.get(i).getCity_id()==start){
-                    start=i;
+                if (cities.get(i).getCity_id() == start) {
+                    start = i;
                     break;
                 }
             }
             for (int i = 0; i < s; i++) {
-                if(cities.get(i).getCity_id()==end){
-                    end=i;
+                if (cities.get(i).getCity_id() == end) {
+                    end = i;
                     break;
                 }
             }
-            int minD=1000000;
-            int flag=0;
+
+            List<City> mid_city = new ArrayList<>();
             for (int i = 0; i < s; i++) {
-                if(cities.get(i).getLocation().equals("china")&&i!=start&&i!=end){
-                    if(distance[start][i]+distance[i][end]<minD){
-                        minD=distance[start][i]+distance[i][end];
-                        flag=i;
+                City mid = cities.get(i);
+                if (mid.getLocation().equals("china") && i != start && i != end) {
+                    Map<String,Object> param1 = new HashMap();
+                    Map<String,Object> param2 = new HashMap();
+                    //前段航班
+                    param1.put("start_city", start_city);
+                    param1.put("end_city", mid.getCity_name());
+                    //后段航班
+                    param2.put("start_city", mid.getCity_name());
+                    param2.put("end_city", end_city);
+
+                    if( planemapper.getPlaneList(param1).size()>0 && planemapper.getPlaneList(param2).size()>0){
+                        mid_city.add(mid);
                     }
                 }
             }
-            return cities.get(flag).getCity_name();
+
+            return mid_city;
+
         }
-        else return "？";
+        else return null;
 
     }
 }
