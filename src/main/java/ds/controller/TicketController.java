@@ -85,7 +85,8 @@ public class TicketController {
 
     @RequestMapping(value = "/addTickets",method = RequestMethod.POST)
     public String addTickets(HttpServletRequest req) throws IOException {
-        ticketService.addTickets((List<Ticket>) req.getAttribute("tickets"));
+        List<Ticket> tk = (List<Ticket>) req.getAttribute("tickets");
+        ticketService.addTickets(tk);
         return "true";
 
     }

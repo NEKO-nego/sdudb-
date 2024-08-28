@@ -228,7 +228,7 @@ public class PlaneController {
 
         if (!planes.isEmpty()){
             System.out.println(f_plane);
-            int plane_id=planes.get(0).getPlane_id();
+            int plane_id=planes.get(planes.size() - 1).getPlane_id();
             for(Ticket ticket:tickets){
                 ticket.setNumber_rest(ticket.getNumber_all());
                 ticket.setPlane_id(plane_id);
