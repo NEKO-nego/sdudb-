@@ -240,6 +240,7 @@ public class PlaneController {
     }
 
     //取消航班
+    @ResponseBody
     @RequestMapping(value = "/cancelPlane",method = RequestMethod.POST)
     public String cancelPlane(HttpServletRequest req) throws IOException {
 
@@ -257,19 +258,25 @@ public class PlaneController {
         map.put("exist","NO");
         map.put("plane_id",plane_id);
         planeService.updatePlane(map);
-        req.setAttribute("planes",plane);
 
-        Date d=new Date(System.currentTimeMillis());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String notice_time=sdf.format(d);
-        for(Ticket ticket:plane.getTickets()){
-            for (Deal deal:ticket.getDeals()){
-                planeService.addCancelNotice(deal.getId(),plane_id,notice_time);
+        if(plane != null) {
+            req.setAttribute("planes", plane);
+
+            Date d = new Date(System.currentTimeMillis());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String notice_time = sdf.format(d);
+            for (Ticket ticket : plane.getTickets()) {
+                for (Deal deal : ticket.getDeals()) {
+                    planeService.addCancelNotice(deal.getId(), plane_id, notice_time);
+                }
             }
-        }
 
-        return "forward:/cancel";
+            return "forward:/cancel";
+        }
+            return "true";
+
     }
+    @ResponseBody
     @RequestMapping(value = "/cancelPlaneRecord",method = RequestMethod.POST)
     public String cancelPlaneRecord(HttpServletRequest req) throws IOException {
 
@@ -283,9 +290,10 @@ public class PlaneController {
         String j_plane_id=JSON.toJSONString(oo.get("plane_id"));
         Integer plane_id= JSON.parseObject(j_plane_id,Integer.class,Feature.InitStringFieldAsEmpty);
         Plane plane=planeService.getCancelPlane(plane_id);
-        req.setAttribute("planes",plane);
-
-        return "forward:/cancelRecord";
+        if(plane != null)
+            {req.setAttribute("planes",plane);
+            return "forward:/cancelRecord";}
+        return "true";
     }
 
     @ResponseBody
