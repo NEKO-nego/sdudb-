@@ -143,7 +143,7 @@ public class PlaneController {
                     if (ms >= 3600000 && ms <= 43200000) {
                         Planes2 pp = new Planes2(planes1.get(i), planes2.get(j));
                         mm.add(pp);
-                        break;
+
                     }
                 }
             }
