@@ -31,4 +31,5 @@ public class Deal {
     private Passenger passenger;
     private List<Ticket> tickets;
     private String seat;
+
 }

@@ -1,5 +1,6 @@
 package ds.controller;
 
+import aj.org.objectweb.asm.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
@@ -7,6 +8,7 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ds.common.AliPayConfig;
 import ds.pojo.Deal;
 import ds.pojo.Plane;
@@ -24,10 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @CrossOrigin
@@ -310,10 +309,32 @@ public class DealController {
 
                 }else if(deal.getAttribute().equals("transit")){
 
+                    //将订单的价格改为剩下的一张票的价格，属性改为单程
                     HashMap<String, Object> map = new HashMap<String, Object>();
                     map.put("deal_id",deal.getDeal_id());
-                    map.put("pay","NO");
+                    map.put("price",deal.getPrice()-ticket.getCoun()*plane.getPrice()/100-190);
+                    map.put("attribute","direct");
                     dealService.updateDeal(map);
+
+                    //删除原绑定
+                    HashMap<String,Object> map1=new HashMap<>();
+                    map1.put("deal_id",deal.getDeal_id());
+                    map1.put("ticket_id",ticket.getTicket_id());
+                    dealService.deleteDealTicket(map1);
+
+                    //添加新绑定
+                    deal.setPrice(plane.getPrice()*ticket.getCoun()/100+190);
+                    deal.setAttribute("direct");
+                    deal.setTicket_id(ticket.getTicket_id());
+                    int deal_id=dealService.addDeal(deal);
+
+                    HashMap<String,Object> map2=new HashMap<>();
+                    map2.put("deal_id",deal_id);
+                    map2.put("pay","NO");
+                    dealService.updateDeal(map2);
+
+                    deal.setDeal_id(deal_id);
+                    dealService.addDealTicket(deal);
 
                 }
             }
@@ -358,10 +379,17 @@ public class DealController {
         HashMap<String, Object> seatParams = new HashMap<>();
         int idd = planeService.selectbydeal(deal.getDeal_id());
         seatParams.put("planeId",idd);
-        seatParams.put("seatIndex",deal.getSeat());
+
         if(deal.getSeat() == null)
-            {seatParams.put("seatStatus", false);}
+            {
+                HashMap<String, Object> mydeal = new HashMap<>();
+                mydeal.put("deal_id", deal.getDeal_id());
+                List<Deal> temp = dealService.getDealList(mydeal);
+                Deal dd = temp.get(0);
+                seatParams.put("seatIndex", dd.getSeat());
+                seatParams.put("seatStatus", false);}
         else {
+            seatParams.put("seatIndex",deal.getSeat());
             seatParams.put("seatStatus", true);
         }
         seatService.updateSeatStatus(seatParams);
@@ -386,6 +414,35 @@ public class DealController {
         System.out.println("返回的座位数组：" + Arrays.toString(seatsArray));
         // 返回布尔数组
         return seatsArray;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/getMyseat", method = RequestMethod.POST)
+    public List<Integer> getMyseat(@RequestBody Map<String, Integer> requestParams) {
+        int deal_id = requestParams.get("planeId");
+        HashMap<String, Object> mydeal = new HashMap<>();
+        mydeal.put("deal_id", deal_id);
+        List<Deal> temp = dealService.getDealList(mydeal);
+        Deal dd = temp.get(0);
+
+        // 获取座位字符串
+        String seatString = dd.getSeat();
+
+        // 将座位字符串转换为整数列表
+        List<Integer> seatList = new ArrayList<>();
+        if (seatString != null && !seatString.isEmpty()) {
+            // 使用逗号分隔字符串并转换为整数列表
+            String[] seatArray = seatString.split(",");
+            for (String seat : seatArray) {
+                try {
+                    seatList.add(Integer.parseInt(seat.trim()));
+                } catch (NumberFormatException e) {
+                    e.printStackTrace(); // 处理转换错误
+                }
+            }
+        }
+
+        return seatList;
     }
 
 }
