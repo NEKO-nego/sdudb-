@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//ds.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ds.mapper.SeatMapper">
+
+    <!-- 更新座位状态 -->
+    <update id="updateSeatStatus" parameterType="map">
+        UPDATE plane
+        SET seats = JSON_SET(seats, CONCAT('$[', #{seatIndex}, ']'), #{seatStatus})
+        WHERE plane_id = #{planeId}
+    </update>
+
+    <!-- 根据 plane_id 获取 seats -->
+    <select id="getSeatsByPlaneId" resultType="String">
+        SELECT seats
+        FROM airplane.plane
+        WHERE plane_id = #{planeId}
+    </select>
+
+</mapper>
