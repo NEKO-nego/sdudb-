@@ -310,32 +310,10 @@ public class DealController {
 
                 }else if(deal.getAttribute().equals("transit")){
 
-                    //将订单的价格改为剩下的一张票的价格，属性改为单程
                     HashMap<String, Object> map = new HashMap<String, Object>();
                     map.put("deal_id",deal.getDeal_id());
-                    map.put("price",deal.getPrice()-ticket.getCoun()*plane.getPrice()/100-190);
-                    map.put("attribute","direct");
+                    map.put("pay","NO");
                     dealService.updateDeal(map);
-
-                    //删除原绑定
-                    HashMap<String,Object> map1=new HashMap<>();
-                    map1.put("deal_id",deal.getDeal_id());
-                    map1.put("ticket_id",ticket.getTicket_id());
-                    dealService.deleteDealTicket(map1);
-
-                    //添加新绑定
-                    deal.setPrice(plane.getPrice()*ticket.getCoun()/100+190);
-                    deal.setAttribute("direct");
-                    deal.setTicket_id(ticket.getTicket_id());
-                    int deal_id=dealService.addDeal(deal);
-
-                    HashMap<String,Object> map2=new HashMap<>();
-                    map2.put("deal_id",deal_id);
-                    map2.put("pay","NO");
-                    dealService.updateDeal(map2);
-
-                    deal.setDeal_id(deal_id);
-                    dealService.addDealTicket(deal);
 
                 }
             }
