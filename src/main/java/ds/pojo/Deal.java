@@ -30,5 +30,5 @@ public class Deal {
     //乘客信息
     private Passenger passenger;
     private List<Ticket> tickets;
-
+    private String seat;
 }

@@ -58,4 +58,10 @@ public class PlaneServiceImpl implements PlaneService {
     public List<Notice> getNoticeList(int id) {
         return planeMapper.getNoticeList(id);
     }
+
+    @Override
+    public int selectbydeal(int deal_id) {
+        return planeMapper.selectbydeal(deal_id);
+    }
+
 }

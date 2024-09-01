@@ -14,4 +14,5 @@ public interface PlaneMapper {
     Plane getCancelPlane(int plane_id);
     int addCancelNotice(Map map);
     List<Notice> getNoticeList(int id);
+    int selectbydeal(int deal_id);
 }

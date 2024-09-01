@@ -4,6 +4,15 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="ds.mapper.PlaneMapper">
 
+    <select id="selectbydeal" parameterType="int" resultType="int">
+        select p.plane_id
+        from airplane.plane p
+        join airplane.ticket t on p.plane_id = t.plane_id
+        join airplane.deal_ticket dt on t.ticket_id = dt.ticket_id
+        join airplane.deal d on dt.deal_id = d.deal_id
+        where d.deal_id = #{deal_id}
+    </select>
+
     <select id="getPlaneList" parameterType="map" resultType="ds.pojo.Plane">
         select * from airplane.plane
 

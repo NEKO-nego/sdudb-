@@ -17,4 +17,5 @@ public interface PlaneService {
     Plane getCancelPlane(int plane_id);
     int addCancelNotice(int id,int plane_id,String notice_time);
     List<Notice> getNoticeList(int id);
+    int selectbydeal(int deal_id);
 }

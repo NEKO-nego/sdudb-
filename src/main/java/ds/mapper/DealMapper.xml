@@ -115,6 +115,7 @@
             <if test="price != null">price=#{price},</if>
             <if test="attribute != null">attribute=#{attribute}</if>
             <if test="pay != null">pay=#{pay}</if>
+            <if test="seat != null">seat=#{seat}</if>
         </set>
         where deal_id = #{deal_id}
     </update>

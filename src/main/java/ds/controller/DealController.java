@@ -13,20 +13,21 @@ import ds.pojo.Plane;
 import ds.pojo.Ticket;
 import ds.service.DealService;
 
+import ds.service.PlaneService;
+import ds.service.SeatService;
 import ds.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @CrossOrigin
@@ -45,6 +46,14 @@ public class DealController {
     @Autowired
     @Qualifier("ticketServiceImpl")
     TicketService ticketService;
+
+    @Autowired
+    @Qualifier("planeServiceImpl")
+    PlaneService planeService;
+
+    @Autowired
+    @Qualifier("seatServiceImpl")
+    SeatService seatService;
 
     @Autowired
     private AliPayConfig aliPayConfig;
@@ -348,6 +357,59 @@ public class DealController {
         List<Deal> dealList =dealService.getDealListPlus(map);
 
         return JSON.toJSONString(dealList);
-
     }
+
+    //对于选座位的支持
+    @ResponseBody
+    @RequestMapping(value = "/updateSeatAndPlane", method = RequestMethod.POST)
+    public String updateSeatAndPlane(HttpServletRequest req) throws IOException {
+        // 读取请求体中的数据
+        String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
+        String str = s.substring(8, s.length() - 1);
+        Deal deal = JSON.parseObject(str, Deal.class, Feature.InitStringFieldAsEmpty);
+
+        // 解码字段
+        try {
+            deal.setAttribute(java.net.URLDecoder.decode(deal.getAttribute(), "UTF-8"));
+            deal.setId_number(java.net.URLDecoder.decode(deal.getId_number(), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        // 更新 plane表 的seat 信息
+        HashMap<String, Object> seatParams = new HashMap<>();
+        int idd = planeService.selectbydeal(deal.getDeal_id());
+        seatParams.put("planeId",idd);
+        seatParams.put("seatIndex",deal.getSeat());
+        if(deal.getSeat() == null)
+            {seatParams.put("seatStatus", false);}
+        else {
+            seatParams.put("seatStatus", true);
+        }
+        seatService.updateSeatStatus(seatParams);
+
+        // 更新 deal表 的 seat 信息
+        HashMap<String, Object> seat = new HashMap<>();
+        seat.put("seat",deal.getSeat());
+        seat.put("deal_id", deal.getDeal_id());
+        dealService.updateDeal(seat);
+
+        return "true";
+    }
+
+
+
+    @ResponseBody
+    @RequestMapping(value = "/getSeatsArray", method = RequestMethod.POST)
+    public boolean[] getSeatsArray(@RequestBody Map<String, Integer> requestParams) {
+        int planeId = planeService.selectbydeal(requestParams.get("planeId"));
+        // 从请求体中获取 planeId
+        boolean[] seatsArray = seatService.getSeatsArray(planeId);
+        System.out.println("返回的座位数组：" + Arrays.toString(seatsArray));
+        // 返回布尔数组
+        return seatsArray;
+    }
+
 }
+
+
