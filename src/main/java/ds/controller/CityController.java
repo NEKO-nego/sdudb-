@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,4 +94,20 @@ public class CityController {
 
         return JSON.toJSONString(timeAdapter);
         }
+
+
+    @ResponseBody
+    @RequestMapping(value = "/getAllCities", method = RequestMethod.POST)
+    public String[] getAllCities() {
+        List<City> cities = cityService.getCityList(new HashMap<>()); // 获取所有城市
+        String[] cityNames = new String[cities.size()]; // 创建一个字符串数组
+
+        for (int i = 0; i < cities.size(); i++) {
+            cityNames[i] = cities.get(i).getCity_name(); // 将城市名称添加到数组中
+        }
+
+        return cityNames; // 返回字符串数组
     }
+
+
+}

@@ -18,7 +18,7 @@ public class AliPayConfig {
 
     private String alipayPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAufwbHOzcxNxDlvpFKBAtl0SpHujUOU4OFmbB5WlzyzsMJD7psqqZX734BGPm0kaWpXbyTMJcrfnJKif3nhDP4BuHVtAEp9M5gpgKBQnkjVWQbpRtE8cvlKpE2nOCubQ6jS9cZAKRmntm+jDLxaEsHKAq6KBmctwS/3TxMjcvHW+wmpB/jToR/nSL3OgJdaSfKSW2RYc9Aj3q76I8YY/yoGVuwLwqFb3C4spwV1bmfHvv5TkCt00kVyw9ZuezOvbNsM7v7drYCp7SgPIImpow5T25tmvEjx2SSET1F4VrcslC+MpjxdNAl1la/x6/iihd3QuBaSPD58ESfeB80jw1uQIDAQAB";
 
-    private String notifyUrl = "http://aw7bgs.natappfree.cc/alipay/notify";
+    private String notifyUrl = "http://aw7bgs.natappfree.cc/DsPro/notify";
 
     public String getAppId() {
         return appId;

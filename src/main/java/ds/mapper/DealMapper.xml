@@ -60,6 +60,7 @@
         <result property="price" column="price"></result>
         <result property="time" column="time"></result>
         <result property="pay" column="pay"></result>
+        <result property="id" column="id"/>
         <association property="passenger" javaType="Passenger">
             <result property="id_number" column="id_number"></result>
             <result property="name" column="name"></result>
@@ -110,14 +111,14 @@
     </delete>
 
     <update id="updateDeal" parameterType="map">
-        update airplane.deal
-        <set>
+        UPDATE airplane.deal
+        <trim prefix="SET" suffixOverrides=",">
             <if test="price != null">price=#{price},</if>
-            <if test="attribute != null">attribute=#{attribute}</if>
-            <if test="pay != null">pay=#{pay}</if>
+            <if test="attribute != null">attribute=#{attribute},</if>
+            <if test="pay != null">pay=#{pay},</if>
             <if test="seat != null">seat=#{seat}</if>
-        </set>
-        where deal_id = #{deal_id}
+        </trim>
+        WHERE deal_id = #{deal_id}
     </update>
 
 

@@ -127,10 +127,12 @@ public class DealController {
         return form;
     }
 
+
+
     //付款一笔中转订单
     @ResponseBody
     @RequestMapping(value = "/pay2",method = RequestMethod.POST)
-    public String pay2(HttpServletRequest req) throws IOException {
+    public String pay2(HttpServletRequest req, HttpServletResponse httpResponse) throws IOException {
 
         //获得对象（绑定两张票的订单）
         String s = new BufferedReader(new InputStreamReader(req.getInputStream())).readLine();
@@ -161,7 +163,33 @@ public class DealController {
         req.setAttribute("ticket_id2",deal.getTicket_id());
         dealService.addDealTicket(deal);
 
-        return "forward:/numberRestMinus1_2";
+        //余票减一
+        int ticket_id11=(int)req.getAttribute("ticket_id1");
+        int ticket_id21=(int)req.getAttribute("ticket_id2");
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("ticket_id",ticket_id11);
+        ticketService.updateTicketMinus1(map);
+        HashMap<String, Object> map1 = new HashMap<String, Object>();
+        map1.put("ticket_id",ticket_id21);
+        ticketService.updateTicketMinus1(map1);
+
+        // 生成支付表单并写入响应
+        String form = "";
+        try {
+            form = alipay(deal);
+            // 直接返回生成的表单 HTML 字符串
+            httpResponse.setContentType("text/html;charset=" + CHARSET);
+            PrintWriter writer = httpResponse.getWriter();
+            writer.print(form);
+            writer.flush();
+            writer.close();
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+            httpResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Payment processing error");
+        }
+        System.out.println("Generated 这个真的是最新版form: " + form);
+
+        return form;
     }
     @ResponseBody
     @RequestMapping(value = "/dealPaid",method = RequestMethod.POST)
@@ -350,10 +378,14 @@ public class DealController {
         String str=s.substring(8,s.length()-1);
         Deal deal= JSON.parseObject(str,Deal.class, Feature.InitStringFieldAsEmpty);
         System.out.println(str);
-        //根据userID获得其绑定的所有乘客身份证号码
+
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("deal_id",deal.getDeal_id());
         List<Deal> dealList =dealService.getDealListPlus(map);
+
+        List<Deal> dealList2 =dealService.getDealList(map);
+        if(dealList2.get(0).getId() != deal.getId() && deal.getId()!= 90000000)
+            return null;
 
         return JSON.toJSONString(dealList);
     }
